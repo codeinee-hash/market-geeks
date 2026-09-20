@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
@@ -9,7 +9,7 @@ import { Category } from '@/types'
 import api from '@/lib/api'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Dialog,
@@ -23,7 +23,6 @@ import {
 import { toast } from 'sonner'
 
 export default function CategoriesClient() {
-  const router = useRouter()
   const queryClient = useQueryClient()
 
   // Загрузка категорий через React Query (использует гидрированные данные из SSR)
@@ -52,8 +51,10 @@ export default function CategoriesClient() {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">Все категории</h2>
-        <Button onClick={() => router.push('/categories/new')}>
-          <Plus className="mr-2 h-4 w-4" /> Добавить категорию
+        <Button asChild>
+          <Link href="/categories/new" prefetch={true}>
+            <Plus className="mr-2 h-4 w-4" /> Добавить категорию
+          </Link>
         </Button>
       </div>
 
@@ -98,8 +99,10 @@ export default function CategoriesClient() {
                 </CardDescription>
               </CardHeader>
               <CardFooter className="flex gap-2">
-                <Button variant="outline" className="flex-1" size="sm" onClick={() => router.push(`/categories/${category._id}`)}>
-                  <Pencil className="mr-2 h-3 w-3" /> Изменить
+                <Button asChild variant="outline" className="flex-1" size="sm">
+                  <Link href={`/categories/${category._id}`} prefetch={true}>
+                    <Pencil className="mr-2 h-3 w-3" /> Изменить
+                  </Link>
                 </Button>
                 <Button variant="destructive" size="icon" className="h-8 w-8 shrink-0" onClick={() => setDeleteId(category._id)}>
                   <Trash2 className="h-4 w-4" />

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Plus, Search, Pencil, Trash2 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
@@ -33,7 +33,6 @@ import {
 import { toast } from 'sonner'
 
 export default function ProductsClient() {
-  const router = useRouter()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebounce(search, 500)
@@ -76,8 +75,10 @@ export default function ProductsClient() {
             />
           </div>
         </div>
-        <Button onClick={() => router.push('/products/new')}>
-          <Plus className="mr-2 h-4 w-4" /> Добавить товар
+        <Button asChild>
+          <Link href="/products/new" prefetch={true}>
+            <Plus className="mr-2 h-4 w-4" /> Добавить товар
+          </Link>
         </Button>
       </div>
 
@@ -138,8 +139,10 @@ export default function ProductsClient() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => router.push(`/products/${product._id}`)}>
-                      <Pencil className="h-4 w-4" />
+                    <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+                      <Link href={`/products/${product._id}`} prefetch={true}>
+                        <Pencil className="h-4 w-4" />
+                      </Link>
                     </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteId(product._id)}>
                       <Trash2 className="h-4 w-4" />

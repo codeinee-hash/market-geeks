@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,7 +23,7 @@ export function Header({ title }: HeaderProps) {
 	const { user } = useAuth()
 
 	return (
-		<header className='sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-card px-4 md:px-6'>
+		<header className='sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/60 bg-card/75 backdrop-blur-md px-4 md:px-6'>
 			<div className='flex items-center gap-3'>
 				{/* Мобильное меню */}
 				<Sheet>
@@ -35,7 +36,9 @@ export function Header({ title }: HeaderProps) {
 						<SheetHeader className='sr-only'>
 							<SheetTitle>Навигационное меню</SheetTitle>
 						</SheetHeader>
-						<Sidebar />
+						<Suspense fallback={<div className='w-64' />}>
+							<Sidebar />
+						</Suspense>
 					</SheetContent>
 				</Sheet>
 

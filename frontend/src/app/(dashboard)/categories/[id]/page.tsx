@@ -1,13 +1,16 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { ArrowLeft } from 'lucide-react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import api from '@/lib/api'
+import { Category } from '@/types'
 import { categorySchema, CategoryFormData } from '@/schemas/category.schema'
 import { Header } from '@/components/layout/header'
 
@@ -23,15 +26,26 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { AxiosError } from 'axios'
 
 export default function CategoryEditPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { id } = use(params)
   
   const isNew = id === 'new'
-  const [loading, setLoading] = useState(!isNew)
-  const [submitting, setSubmitting] = useState(false)
+
+  // Загружаем категорию с переиспользованием кэша из списка категорий
+  const { data: categoryData, isLoading: isLoadingCategory } = useQuery<Category>({
+    queryKey: ['category', id],
+    queryFn: () => api.get(`/categories/${id}`).then((res) => res.data.data),
+    enabled: !isNew,
+    initialData: () => {
+      const categories = queryClient.getQueryData<Category[]>(['categories'])
+      return categories?.find((c) => c._id === id)
+    },
+  })
 
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
@@ -43,52 +57,76 @@ export default function CategoryEditPage({ params }: { params: Promise<{ id: str
   })
 
   useEffect(() => {
-    const fetchCategory = async () => {
-      if (isNew) return;
-      try {
-        const { data } = await api.get(`/categories/${id}`)
-        form.reset({
-          name: data.data.name,
-          description: data.data.description || '',
-          image: data.data.image || '',
-        })
-      } catch (error) {
-        console.error('Failed to fetch category:', error)
-        toast.error('Категория не найдена')
-        router.push('/categories')
-      } finally {
-        setLoading(false)
-      }
+    if (categoryData) {
+      form.reset({
+        name: categoryData.name,
+        description: categoryData.description || '',
+        image: categoryData.image || '',
+      })
     }
+  }, [categoryData, form])
 
-    fetchCategory()
-  }, [id, isNew, form, router])
-
-  async function onSubmit(values: CategoryFormData) {
-    setSubmitting(true)
-    try {
+  const saveMutation = useMutation({
+    mutationFn: (values: CategoryFormData) => {
       if (isNew) {
-        await api.post('/admin/categories', values)
-        toast.success('Категория успешно создана')
+        return api.post('/admin/categories', values)
       } else {
-        await api.patch(`/admin/categories/${id}`, values)
-        toast.success('Категория обновлена')
+        return api.patch(`/admin/categories/${id}`, values)
       }
+    },
+    onSuccess: () => {
+      toast.success(isNew ? 'Категория успешно создана' : 'Категория обновлена')
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
+      queryClient.invalidateQueries({ queryKey: ['category', id] })
       router.push('/categories')
-    } catch (error: unknown) {
+    },
+    onError: (error: unknown) => {
       if (error instanceof AxiosError) {
         toast.error(error.response?.data?.message || 'Произошла ошибка')
       }
-    } finally {
-      setSubmitting(false)
-    }
+    },
+  })
+
+  function onSubmit(values: CategoryFormData) {
+    saveMutation.mutate(values)
   }
+
+  const loading = !isNew && isLoadingCategory && !categoryData
 
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col">
-        <Header title="Загрузка..." />
-        <div className="p-8">Загрузка данных категории...</div>
+        <Header title="Категория" />
+        <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-9 w-9 rounded-md" />
+            <Skeleton className="h-8 w-60 rounded-md" />
+          </div>
+          <Card className="max-w-2xl">
+            <CardHeader>
+              <Skeleton className="h-6 w-52" />
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-10 w-full rounded-md" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-10 w-full rounded-md" />
+                <Skeleton className="h-32 w-48 rounded-md" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-24 w-full rounded-md" />
+              </div>
+              <div className="flex justify-end gap-4 pt-2">
+                <Skeleton className="h-10 w-24 rounded-md" />
+                <Skeleton className="h-10 w-28 rounded-md" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     )
   }
@@ -98,8 +136,10 @@ export default function CategoryEditPage({ params }: { params: Promise<{ id: str
       <Header title={isNew ? 'Новая категория' : 'Редактирование категории'} />
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => router.push('/categories')}>
-            <ArrowLeft className="h-4 w-4" />
+          <Button asChild variant="outline" size="icon">
+            <Link href="/categories" prefetch={true}>
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
           </Button>
           <h2 className="text-2xl font-bold tracking-tight">
             {isNew ? 'Создание категории' : 'Редактирование категории'}
@@ -161,11 +201,13 @@ export default function CategoryEditPage({ params }: { params: Promise<{ id: str
                 />
 
                 <div className="flex justify-end gap-4">
-                  <Button type="button" variant="outline" onClick={() => router.push('/categories')}>
-                    Отмена
+                  <Button asChild type="button" variant="outline">
+                    <Link href="/categories" prefetch={true}>
+                      Отмена
+                    </Link>
                   </Button>
-                  <Button type="submit" disabled={submitting}>
-                    {submitting ? 'Сохранение...' : 'Сохранить'}
+                  <Button type="submit" disabled={saveMutation.isPending}>
+                    {saveMutation.isPending ? 'Сохранение...' : 'Сохранить'}
                   </Button>
                 </div>
               </form>

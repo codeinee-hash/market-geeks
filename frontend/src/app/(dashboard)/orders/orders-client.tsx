@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Eye } from 'lucide-react'
 import { format } from 'date-fns'
 import { ru } from 'date-fns/locale'
@@ -30,8 +30,6 @@ export const statusMap: Record<OrderStatus, { label: string; color: "default" | 
 }
 
 export default function OrdersClient() {
-  const router = useRouter()
-
   const { data: orders = [], isLoading } = useQuery<Order[]>({
     queryKey: ['orders'],
     queryFn: () => api.get('/admin/orders', { params: { limit: 50 } })
@@ -94,8 +92,10 @@ export default function OrdersClient() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => router.push(`/orders/${order._id}`)}>
-                      <Eye className="h-4 w-4" />
+                    <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+                      <Link href={`/orders/${order._id}`} prefetch={true}>
+                        <Eye className="h-4 w-4" />
+                      </Link>
                     </Button>
                   </TableCell>
                 </TableRow>

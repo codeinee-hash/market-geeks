@@ -51,7 +51,7 @@ export function Sidebar({ className }: { className?: string }) {
   return (
     <aside
       className={cn(
-        'flex h-full w-64 flex-col border-r bg-card',
+        'flex h-full w-64 flex-col border-r border-border/60 bg-card/75 backdrop-blur-md',
         className
       )}
     >
@@ -76,18 +76,20 @@ export function Sidebar({ className }: { className?: string }) {
             (item.href !== '/' && pathname.startsWith(item.href))
 
           return (
-            <Link key={item.href} href={item.href}>
-              <Button
-                variant={isActive ? 'secondary' : 'ghost'}
-                className={cn(
-                  'w-full justify-start gap-3 font-medium',
-                  isActive && 'bg-secondary'
-                )}
-              >
+            <Button
+              asChild
+              key={item.href}
+              variant={isActive ? 'secondary' : 'ghost'}
+              className={cn(
+                'w-full justify-start gap-3 font-medium',
+                isActive && 'bg-secondary'
+              )}
+            >
+              <Link href={item.href} prefetch={true}>
                 <item.icon className="h-4 w-4" />
                 {item.label}
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           )
         })}
       </nav>

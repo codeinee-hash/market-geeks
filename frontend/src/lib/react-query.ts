@@ -4,8 +4,12 @@ export function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 60 * 1000,
-        refetchOnWindowFocus: false,
+        staleTime: 5 * 60 * 1000, // 5 минут данные считаются абсолютно свежими
+        gcTime: 10 * 60 * 1000,    // 10 минут сохранять данные в кэше памяти
+        refetchOnWindowFocus: false, // не спамить запросами при смене фокуса вкладки
+        refetchOnMount: false,       // при возвращении на страницу мгновенно брать из кэша без перезапроса
+        refetchOnReconnect: false,
+        retry: 1,
       },
     },
   })

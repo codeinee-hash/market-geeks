@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input'
 import { loginSchema, LoginFormData } from '@/schemas/auth.schema'
 import { login } from '@/lib/auth'
 import { AxiosError } from 'axios'
+import { BackgroundGrid } from '@/components/layout/background-grid'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -51,8 +52,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40 p-4">
-      <div className="mx-auto w-full max-w-[400px] space-y-6">
+    <div className="relative flex min-h-screen flex-col items-center justify-center p-4">
+      <BackgroundGrid />
+      <div className="relative z-10 mx-auto w-full max-w-[400px] space-y-6">
         <div className="flex flex-col items-center space-y-2 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
             <Store className="h-6 w-6 text-primary-foreground" />

@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
     root: __dirname,
   },
   output: 'standalone',
+  cacheComponents: true,
+  partialPrefetching: true,
 };
 
 export default nextConfig;
