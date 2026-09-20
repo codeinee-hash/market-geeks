@@ -1,0 +1,61 @@
+import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { JwtService } from '@nestjs/jwt'
+import { CookieOptions, Response } from 'express'
+
+export enum TokenType {
+	ACCESS = 'access_token',
+	REFRESH = 'refresh_token',
+}
+
+@Injectable()
+export class TokensService {
+	constructor(private jwtService: JwtService) { }
+
+	generateAccessToken(payload: { _id: string; login: string; email: string; role: string }) {
+		return this.jwtService.sign(payload, {
+			expiresIn: '2d', // 2d  |||  15 s
+		})
+	}
+
+	generateTokens(payload: { _id: string; login: string; email: string; role: string }) {
+		const accessToken = this.generateAccessToken(payload)
+
+		const refreshToken = this.jwtService.sign(payload, {
+			expiresIn: '7d', // 7d  |||  35 s
+		})
+
+		return { accessToken, refreshToken }
+	}
+
+	setRefreshTokenCookie(res: Response, tokenType: TokenType, token: string) {
+		const isProduction = process.env.NODE_ENV === 'production'
+		const day = tokenType === TokenType.ACCESS ? 2 : 7 // 2 / 7  |||  0.0015 / 0.0035
+		res.cookie(tokenType, token, {
+			httpOnly: tokenType === TokenType.REFRESH,
+			secure: isProduction,
+			sameSite: isProduction ? 'none' : 'lax',
+			maxAge: day * 24 * 60 * 60 * 1000,
+		})
+	}
+
+	validateRefreshToken(token: string): any {
+		try {
+			const payload = this.jwtService.verify(token)
+			return payload
+		} catch (e) {
+			throw new UnauthorizedException('Недействительный токен')
+		}
+	}
+
+	removeTokens(res: Response) {
+		const isProduction = process.env.NODE_ENV === 'production'
+		const cookieOptions: CookieOptions = {
+			httpOnly: true,
+			secure: isProduction,
+			sameSite: 'strict',
+		}
+
+		res.clearCookie(TokenType.REFRESH, cookieOptions)
+		res.clearCookie(TokenType.ACCESS, cookieOptions)
+	}
+}
