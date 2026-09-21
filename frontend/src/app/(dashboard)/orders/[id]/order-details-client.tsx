@@ -46,10 +46,23 @@ export default function OrderDetailsClient({ id }: { id: string }) {
 
   const statusMutation = useMutation({
     mutationFn: (newStatus: string) => api.patch(`/admin/orders/${id}/status`, { status: newStatus }),
-    onSuccess: () => {
+    onSuccess: (res, newStatus) => {
       toast.success('Статус заказа обновлён')
-      queryClient.invalidateQueries({ queryKey: ['order', id] })
-      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      const updatedOrder = res?.data?.data
+      if (updatedOrder) {
+        queryClient.setQueryData(['order', id], updatedOrder)
+      } else {
+        queryClient.setQueryData<Order>(['order', id], (old) => {
+          if (!old) return old
+          return { ...old, status: newStatus as Order['status'] }
+        })
+      }
+      queryClient.setQueriesData<Order[]>({ queryKey: ['orders'] }, (old) => {
+        if (!old) return old
+        return old.map((o) => (o._id === id ? { ...o, status: newStatus as Order['status'] } : o))
+      })
+      queryClient.invalidateQueries({ queryKey: ['order', id], refetchType: 'all' })
+      queryClient.invalidateQueries({ queryKey: ['orders'], refetchType: 'all' })
     },
     onError: (error: unknown) => {
       if (error instanceof AxiosError) {

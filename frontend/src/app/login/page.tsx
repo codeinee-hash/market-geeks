@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { Store } from 'lucide-react'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { Store } from "lucide-react";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -15,39 +15,39 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { loginSchema, LoginFormData } from '@/schemas/auth.schema'
-import { login } from '@/lib/auth'
-import { AxiosError } from 'axios'
-import { BackgroundGrid } from '@/components/layout/background-grid'
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { loginSchema, LoginFormData } from "@/schemas/auth.schema";
+import { login } from "@/lib/auth";
+import { AxiosError } from "axios";
+import { BackgroundGrid } from "@/components/layout/background-grid";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      loginOrEmail: '',
-      password: '',
+      loginOrEmail: "",
+      password: "",
     },
-  })
+  });
 
   async function onSubmit(values: LoginFormData) {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await login(values.loginOrEmail, values.password)
-      toast.success('Успешный вход')
-      router.push('/')
+      await login(values.loginOrEmail, values.password);
+      toast.success("Успешный вход");
+      router.push("/");
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         toast.error(
-          error.response?.data?.message || 'Ошибка входа. Проверьте данные.'
-        )
+          error.response?.data?.message || "Ошибка входа. Проверьте данные.",
+        );
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -59,9 +59,7 @@ export default function LoginPage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
             <Store className="h-6 w-6 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Shop Admin
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight">Shop Admin</h1>
           <p className="text-sm text-muted-foreground">
             Введите свои данные для входа в панель управления
           </p>
@@ -77,7 +75,11 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>Логин или Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="admin" disabled={isLoading} {...field} />
+                      <Input
+                        placeholder="admin"
+                        disabled={isLoading}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -102,12 +104,12 @@ export default function LoginPage() {
                 )}
               />
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Вход...' : 'Войти'}
+                {isLoading ? "Вход..." : "Войти"}
               </Button>
             </form>
           </Form>
         </div>
       </div>
     </div>
-  )
+  );
 }

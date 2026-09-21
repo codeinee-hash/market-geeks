@@ -7,7 +7,7 @@ export function makeQueryClient() {
         staleTime: 5 * 60 * 1000, // 5 минут данные считаются абсолютно свежими
         gcTime: 10 * 60 * 1000,    // 10 минут сохранять данные в кэше памяти
         refetchOnWindowFocus: false, // не спамить запросами при смене фокуса вкладки
-        refetchOnMount: false,       // при возвращении на страницу мгновенно брать из кэша без перезапроса
+        refetchOnMount: true,       // если данные свежие (< 5 мин) — мгновенно из кэша без запроса. Если инвалидированы (stale) — фоновое обновление.
         refetchOnReconnect: false,
         retry: 1,
       },

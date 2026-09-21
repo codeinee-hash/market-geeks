@@ -82,7 +82,10 @@ export default function ProductFormClient({ id }: { id: string }) {
         description: productData.description || '',
         price: productData.price,
         image: productData.image || '',
-        category: typeof productData.category === 'object' ? productData.category._id : productData.category,
+        category:
+          typeof productData.category === 'object' && productData.category !== null
+            ? productData.category._id
+            : (productData.category || ''),
         stock: productData.stock,
       })
     }
@@ -96,10 +99,21 @@ export default function ProductFormClient({ id }: { id: string }) {
         return api.patch(`/admin/products/${id}`, values)
       }
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast.success(isNew ? 'Товар успешно создан' : 'Товар обновлён')
-      queryClient.invalidateQueries({ queryKey: ['products'] })
-      queryClient.invalidateQueries({ queryKey: ['product', id] })
+      const savedProduct = res?.data?.data
+      if (savedProduct) {
+        queryClient.setQueryData(['product', savedProduct._id], savedProduct)
+        queryClient.setQueriesData<Product[]>({ queryKey: ['products'] }, (old) => {
+          if (!old) return [savedProduct]
+          if (isNew) {
+            return [savedProduct, ...old]
+          }
+          return old.map((p) => (p._id === savedProduct._id ? { ...p, ...savedProduct } : p))
+        })
+      }
+      queryClient.invalidateQueries({ queryKey: ['products'], refetchType: 'all' })
+      queryClient.invalidateQueries({ queryKey: ['product', id], refetchType: 'all' })
       router.push('/products')
     },
     onError: (error: unknown) => {

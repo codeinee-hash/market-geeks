@@ -35,6 +35,8 @@ const navItems = [
   { href: '/users', label: 'Пользователи', icon: Users },
 ]
 
+
+
 export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname()
   const router = useRouter()

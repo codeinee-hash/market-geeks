@@ -50,9 +50,13 @@ export default function ProductsClient() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/admin/products/${id}`),
-    onSuccess: () => {
+    onSuccess: (_, deletedId) => {
       toast.success('Товар успешно удален')
-      queryClient.invalidateQueries({ queryKey: ['products'] })
+      queryClient.setQueriesData<Product[]>({ queryKey: ['products'] }, (old) => {
+        if (!old) return old
+        return old.filter((p) => p._id !== deletedId)
+      })
+      queryClient.invalidateQueries({ queryKey: ['products'], refetchType: 'all' })
       setDeleteId(null)
     },
     onError: () => {
@@ -129,7 +133,9 @@ export default function ProductsClient() {
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">
-                      {typeof product.category === 'object' ? product.category.name : 'Категория'}
+                      {typeof product.category === 'object' && product.category !== null
+                        ? product.category.name
+                        : (product.category || 'Без категории')}
                     </Badge>
                   </TableCell>
                   <TableCell>{product.price.toLocaleString('ru-RU')} ₽</TableCell>

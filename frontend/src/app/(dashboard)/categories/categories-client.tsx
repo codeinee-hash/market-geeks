@@ -36,9 +36,13 @@ export default function CategoriesClient() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/admin/categories/${id}`),
-    onSuccess: () => {
+    onSuccess: (_, deletedId) => {
       toast.success('Категория успешно удалена')
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
+      queryClient.setQueryData<Category[]>(['categories'], (old) => {
+        if (!old) return old
+        return old.filter((c) => c._id !== deletedId)
+      })
+      queryClient.invalidateQueries({ queryKey: ['categories'], refetchType: 'all' })
       setDeleteId(null)
     },
     onError: () => {

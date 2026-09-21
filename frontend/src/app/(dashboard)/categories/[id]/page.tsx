@@ -74,10 +74,21 @@ export default function CategoryEditPage({ params }: { params: Promise<{ id: str
         return api.patch(`/admin/categories/${id}`, values)
       }
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast.success(isNew ? 'Категория успешно создана' : 'Категория обновлена')
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
-      queryClient.invalidateQueries({ queryKey: ['category', id] })
+      const savedCategory = res?.data?.data
+      if (savedCategory) {
+        queryClient.setQueryData(['category', savedCategory._id], savedCategory)
+        queryClient.setQueryData<Category[]>(['categories'], (old) => {
+          if (!old) return [savedCategory]
+          if (isNew) {
+            return [...old, savedCategory]
+          }
+          return old.map((c) => (c._id === savedCategory._id ? savedCategory : c))
+        })
+      }
+      queryClient.invalidateQueries({ queryKey: ['categories'], refetchType: 'all' })
+      queryClient.invalidateQueries({ queryKey: ['category', id], refetchType: 'all' })
       router.push('/categories')
     },
     onError: (error: unknown) => {
