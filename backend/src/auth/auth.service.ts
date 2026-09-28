@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as bcrypt from 'bcryptjs'
 import { Request, Response } from 'express'
 import { CreateUserDto, LoginUserDto } from 'src/users/dto/user.dto'
+import { UserRole } from 'src/users/schemas/user.schema'
 import { UsersService } from 'src/users/users.service'
 import { TokensService, TokenType } from './token.service'
 
@@ -14,6 +15,14 @@ export class AuthService {
 
 	async login(userDto: LoginUserDto, res: Response) {
 		const user = await this.validateUser(userDto)
+
+		if (userDto.adminOnly && user.role !== UserRole.ADMIN) {
+			throw new HttpException(
+				'Неверный логин или пароль',
+				HttpStatus.BAD_REQUEST
+			)
+		}
+
 		const { accessToken, refreshToken } = this.tokensService.generateTokens({
 			_id: user?._id?.toString(),
 			login: user.login,
@@ -32,6 +41,12 @@ export class AuthService {
 			status: 'success',
 			message: 'Успешный вход',
 			accessToken,
+			user: {
+				_id: user._id,
+				login: user.login,
+				email: user.email,
+				role: user.role,
+			},
 		}
 	}
 

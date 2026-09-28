@@ -32,7 +32,17 @@ export class AuthController {
 		status: 200,
 		description: 'Успешный вход. Токены устанавливаются в cookies.',
 		schema: {
-			example: { status: 'success', message: 'Успешный вход', accessToken: '...' },
+			example: {
+				status: 'success',
+				message: 'Успешный вход',
+				accessToken: '...',
+				user: {
+					_id: '665a1b2c3d4e5f6a7b8c9d0e',
+					login: 'admin',
+					email: 'admin@shop.geeks',
+					role: 'ADMIN',
+				},
+			},
 		},
 	})
 	@ApiResponse({ status: 400, description: 'Неверный логин/email или пароль' })

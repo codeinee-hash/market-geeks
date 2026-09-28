@@ -21,8 +21,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 || error.response?.status === 403) {
       if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        document.cookie = 'access_token=; path=/; max-age=0'
         window.location.href = '/login'
       }
     }

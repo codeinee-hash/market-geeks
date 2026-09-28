@@ -45,6 +45,10 @@ export default function LoginPage() {
         toast.error(
           error.response?.data?.message || "Ошибка входа. Проверьте данные.",
         );
+      } else if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Ошибка входа. Проверьте данные.");
       }
     } finally {
       setIsLoading(false);
