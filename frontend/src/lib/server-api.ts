@@ -23,9 +23,11 @@ export async function getServerApi() {
           ...init?.headers,
         },
       })
+
       if (!res.ok) {
         throw new Error(`Failed to fetch ${url}`)
       }
+      
       return res.json()
     },
   }

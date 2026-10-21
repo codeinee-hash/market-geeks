@@ -35,8 +35,6 @@ export async function login(loginOrEmail: string, password: string) {
 		throw new Error('Неверный логин или пароль')
 	}
 
-	// Устанавливаем access_token на домен фронтенда,
-	// чтобы proxy мог проверить авторизацию при навигации
 	if (token) {
 		document.cookie = `access_token=${token}; path=/; max-age=${2 * 24 * 60 * 60}; SameSite=Lax`
 	}
@@ -47,7 +45,6 @@ export async function login(loginOrEmail: string, password: string) {
 export async function logout() {
 	const res = await api.post('/auth/logout')
 
-	// Удаляем access_token с домена фронтенда
 	document.cookie = 'access_token=; path=/; max-age=0'
 
 	return res.data
